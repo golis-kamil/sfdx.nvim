@@ -4,6 +4,7 @@ M.namespace = vim.api.nvim_create_namespace("SFDX")
 
 local defaults = {
   -- some default config
+  sfdx_exe = "sfdx",
 }
 
 M.options = {}

@@ -1,5 +1,4 @@
 local diagnostics = {}
-local sfdx_executable = "sfdx"
 local utils = require("sfdx.utils")
 local config = require("sfdx.config")
 
@@ -9,17 +8,6 @@ local msg = {
 	validate_finish = "Validated source.",
 	deploy_finish = "Deployment finished.",
 }
-
-local function notify(message, isError)
-	local severity
-	if isError then
-		severity = vim.log.levels.ERROR
-	else
-		severity = vim.log.levels.INFO
-	end
-
-	vim.notify(message, severity, { title = "SFDX" })
-end
 
 local function set_diagnostics()
 	vim.diagnostic.set(config.namespace, utils.getCurrentBufferNumber(), diagnostics)
@@ -40,7 +28,7 @@ local function parse_sfdx_output(output, validateOnly)
 	end
 
 	if json_result.status == 1 and not validateOnly then
-		notify("Error deploying metadata", true)
+		utils.notify("Error deploying metadata", true)
 	end
 
 	diagnostics = {}
@@ -64,16 +52,15 @@ return function(validateOnly)
 	local buffer_name = utils.getCurrentBufferName()
 
 	if buffer_name == nil or buffer_name == "" then
-		notify("Cannot run command without buffer.", true)
+		utils.notify("Cannot run command without buffer.", true)
 		return
 	end
 
-	if not utils.hasFile("sfdx-project.json") then
-		notify("Not an SFDX project.", true)
+	if not utils.isSfdxProject() then
 		return
 	end
 
-	local command = sfdx_executable .. " force source deploy -p " .. buffer_name .. " --json"
+	local command = config.options.sfdx_exe .. " force source deploy -p " .. buffer_name .. " --json"
 
 	if validateOnly == nil then
 		validateOnly = false
@@ -88,7 +75,7 @@ return function(validateOnly)
 		message_end = msg.validate_finish
 	end
 
-	notify(message_start, false)
+	utils.notify(message_start, false)
 	clear_diagnostics()
 
 	local jobOpts = {
@@ -100,7 +87,7 @@ return function(validateOnly)
 			print(vim.inspect(data))
 		end,
 		on_exit = function(_, _, _)
-			notify(message_end, false)
+			utils.notify(message_end, false)
 		end,
 	}
 	vim.fn.jobstart(command, jobOpts)
