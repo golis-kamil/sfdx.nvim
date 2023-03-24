@@ -19,6 +19,9 @@ SFDX.setup = function(options)
   vim.api.nvim_create_user_command("SfdxValidate", function()
     commands.sfdx_deploy(true)
   end, {})
+  vim.api.nvim_create_user_command("SfdxQuery", function()
+    commands.sfdx_query()
+  end, {})
 end
 
 return SFDX
